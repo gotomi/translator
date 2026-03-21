@@ -1,11 +1,15 @@
 import { streamText } from "ai";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { env } from "$env/dynamic/private";
 import type { RequestEvent } from "@sveltejs/kit";
 
-function getOpenAIClient() {
-  return createOpenAI({
-    apiKey: env.OPENAI_API_KEY,
+function getNvidiaClient() {
+  return createOpenAICompatible({
+    name: "nim",
+    baseURL: "https://integrate.api.nvidia.com/v1",
+    headers: {
+      Authorization: `Bearer ${env.NVIDIA_API_KEY}`,
+    },
   });
 }
 
@@ -19,7 +23,7 @@ export async function POST({ request }: RequestEvent) {
     });
   }
 
-  const openai = getOpenAIClient();
+  const nvidia = getNvidiaClient();
 
   const isAutoDetect = sourceLang === "auto";
 
@@ -32,7 +36,7 @@ ${isAutoDetect ? 'First line: "Detected: <language name>", then a blank line, th
 
   try {
     const result = streamText({
-      model: openai("gpt-4o-mini"),
+      model: nvidia.chatModel("google/gemma-3-27b-it"), // Tu wybierasz dany wariant modelu Gemma z platformy NVIDIA
       system: systemPrompt,
       prompt: userPrompt,
       maxOutputTokens: 2000,
