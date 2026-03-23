@@ -1,17 +1,6 @@
 import { streamText } from "ai";
-import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { env } from "$env/dynamic/private";
+import { ollama } from "ai-sdk-ollama";
 import type { RequestEvent } from "@sveltejs/kit";
-
-function getNvidiaClient() {
-  return createOpenAICompatible({
-    name: "nim",
-    baseURL: "https://integrate.api.nvidia.com/v1",
-    headers: {
-      Authorization: `Bearer ${env.NVIDIA_API_KEY}`,
-    },
-  });
-}
 
 export async function POST({ request }: RequestEvent) {
   const { text, sourceLang, targetLang } = await request.json();
@@ -22,8 +11,6 @@ export async function POST({ request }: RequestEvent) {
       headers: { "Content-Type": "application/json" },
     });
   }
-
-  const nvidia = getNvidiaClient();
 
   const isAutoDetect = sourceLang === "auto";
 
@@ -36,7 +23,7 @@ ${isAutoDetect ? 'First line: "Detected: <language name>", then a blank line, th
 
   try {
     const result = streamText({
-      model: nvidia.chatModel("google/gemma-3-27b-it"), // Tu wybierasz dany wariant modelu Gemma z platformy NVIDIA
+      model: ollama("translategemma:latest"),
       system: systemPrompt,
       prompt: userPrompt,
       maxOutputTokens: 2000,
