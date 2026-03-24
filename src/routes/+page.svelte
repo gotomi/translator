@@ -1,26 +1,26 @@
 <script lang="ts">
-  import { sourceLanguages, targetLanguages } from '$lib/languages';
-  import type { Language, TranslationEntry } from '$lib/types';
-  import { debounce } from '$lib/utils/debounce';
-  import { copyToClipboard } from '$lib/utils/clipboard';
-  import { translateText } from '$lib/services/translator';
+  import { sourceLanguages, targetLanguages } from "$lib/languages";
+  import type { Language, TranslationEntry } from "$lib/types";
+  import { debounce } from "$lib/utils/debounce";
+  import { copyToClipboard } from "$lib/utils/clipboard";
+  import { translateText } from "$lib/services/translator";
 
-  import LanguageBar from '$lib/components/LanguageBar.svelte';
-  import SourcePanel from '$lib/components/SourcePanel.svelte';
-  import TargetPanel from '$lib/components/TargetPanel.svelte';
-  import StreamingIndicator from '$lib/components/StreamingIndicator.svelte';
-  import TranslationHistory from '$lib/components/TranslationHistory.svelte';
+  import LanguageBar from "$lib/components/LanguageBar.svelte";
+  import SourcePanel from "$lib/components/SourcePanel.svelte";
+  import TargetPanel from "$lib/components/TargetPanel.svelte";
+  import StreamingIndicator from "$lib/components/StreamingIndicator.svelte";
+  import TranslationHistory from "$lib/components/TranslationHistory.svelte";
 
   const MAX_CHARS = 5000;
   const MAX_HISTORY = 5;
 
-  let sourceText = $state('');
-  let translatedText = $state('');
-  let selectedSourceLang = $state<Language>(sourceLanguages[0]);
-  let selectedTargetLang = $state<Language>(targetLanguages[1]);
+  let sourceText = $state("");
+  let translatedText = $state("");
+  let selectedSourceLang = $state<Language>(sourceLanguages[2]); // English
+  let selectedTargetLang = $state<Language>(targetLanguages[0]); // Polish
   let isStreaming = $state(false);
-  let error = $state('');
-  let detectedLang = $state('');
+  let error = $state("");
+  let detectedLang = $state("");
   let history = $state<TranslationEntry[]>([]);
   let copied = $state(false);
   let abortController = $state<AbortController | null>(null);
@@ -38,9 +38,9 @@
     if (sourceText.trim()) {
       debouncedTranslate.call();
     } else {
-      translatedText = '';
-      detectedLang = '';
-      error = '';
+      translatedText = "";
+      detectedLang = "";
+      error = "";
     }
 
     return () => {
@@ -57,9 +57,9 @@
 
     abortController = new AbortController();
     isStreaming = true;
-    error = '';
-    translatedText = '';
-    detectedLang = '';
+    error = "";
+    translatedText = "";
+    detectedLang = "";
 
     try {
       const result = await translateText({
@@ -90,10 +90,10 @@
         history = [entry, ...history.slice(0, MAX_HISTORY - 1)];
       }
     } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') {
+      if (err instanceof Error && err.name === "AbortError") {
         return;
       }
-      error = err instanceof Error ? err.message : 'Translation failed';
+      error = err instanceof Error ? err.message : "Translation failed";
     } finally {
       isStreaming = false;
       abortController = null;
@@ -101,7 +101,7 @@
   }
 
   function swapLanguages() {
-    if (selectedSourceLang.code === 'auto') return;
+    if (selectedSourceLang.code === "auto") return;
 
     const tempLang = selectedSourceLang;
     const tempText = sourceText;
@@ -114,10 +114,10 @@
 
   function clearInput() {
     debouncedTranslate.cancel();
-    sourceText = '';
-    translatedText = '';
-    detectedLang = '';
-    error = '';
+    sourceText = "";
+    translatedText = "";
+    detectedLang = "";
+    error = "";
   }
 
   async function handleCopy() {
@@ -142,12 +142,22 @@
 <main class="app">
   <header class="app-header">
     <div class="logo">
-      <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+      <svg
+        class="logo-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path
+          d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
+        />
       </svg>
       <h1>Translator</h1>
     </div>
-    <p class="subtitle">AI-powered translation · 14 languages · Real-time streaming</p>
+    <p class="subtitle">
+      AI-powered translation · 14 languages · Real-time streaming
+    </p>
   </header>
 
   <section class="translator-container" aria-label="Translation interface">
@@ -183,10 +193,7 @@
     {/if}
   </section>
 
-  <TranslationHistory
-    {history}
-    onLoadEntry={loadFromHistory}
-  />
+  <TranslationHistory {history} onLoadEntry={loadFromHistory} />
 </main>
 
 <style>
